@@ -3,6 +3,7 @@
 S3method(get_goi,ExpressionSet)
 S3method(get_goi,SummarizedExperiment)
 export(get_goi)
+export(log_transform)
 import(tidyselect)
 importFrom(Biobase,exprs)
 importFrom(Biobase,fData)
