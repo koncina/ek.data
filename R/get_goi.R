@@ -1,4 +1,7 @@
-#' Function to extract expression data from SummarizedExperiment objects
+globalVariables(c("feature_id", "gene_symbol", "sample_id"))
+
+#' Function to extract expression data from
+#' SummarizedExperiment or ExpressionSet objects
 #'
 #' @importFrom tibble as_tibble
 #' @importFrom tidyr complete separate_rows pivot_longer
@@ -7,6 +10,7 @@
 #'
 #' @param x A SummarizedExperiment object.
 #' @param goi A character vector containing the gene symbols of interest
+#' @param ... Arguments to be passed to methods
 #'
 #' @export
 get_goi <- function (x,  goi, ...) {
@@ -14,12 +18,13 @@ get_goi <- function (x,  goi, ...) {
 }
 
 #' @importFrom SummarizedExperiment rowData colData assay assayNames
+#' @importFrom dplyr recode
 #'
 #' @param assay SummarizedExperiment assay to be used
 #' @param metadata Optional metadata columns to join (tidyselect).
 #'
 #' @export
-get_goi.SummarizedExperiment <- function(x, goi, assay, metadata) {
+get_goi.SummarizedExperiment <- function(x, goi, metadata = NULL, assay) {
 
   assay_names <- assayNames(x)
 
@@ -51,7 +56,7 @@ get_goi.SummarizedExperiment <- function(x, goi, assay, metadata) {
 #' @param metadata Optional metadata columns to join (tidyselect).
 #'
 #' @export
-get_goi.ExpressionSet <- function(x, goi, metadata) {
+get_goi.ExpressionSet <- function(x, goi, metadata = NULL) {
 
   gene_key <- fData(x) |>
     gene_symbol_to_id(goi)
@@ -74,7 +79,7 @@ get_goi.ExpressionSet <- function(x, goi, metadata) {
 gene_symbol_to_id <- function(x, goi) {
   as_tibble(x, rownames = "feature_id") |>
     select("feature_id", "gene_symbol") |>
-    separate_rows(gene_symbol, sep = " /// ") |>
+    separate_rows("gene_symbol", sep = " /// ") |>
     filter(gene_symbol %in% {{goi}}) |>
     complete(gene_symbol = {{goi}})
 }
