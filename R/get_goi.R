@@ -26,12 +26,11 @@ get_goi <- function (x,  goi, ...) {
 #' @export
 get_goi.SummarizedExperiment <- function(x, goi, metadata = NULL, assay) {
 
-  assay_names <- assayNames(x)
+  assay_names <- assayNames(x) %n% "expression"
 
   value_name <- case_when(
     is.character({{assay}}) ~ as.character({{assay}}),
-    (is.numeric({{assay}}) && !is.null(assay_names)) ~ assay_names[{{assay}}],
-    TRUE ~ "expression")
+    is.numeric({{assay}}) ~ assay_names[{{assay}}])
 
   gene_key <- rowData(x) |>
     gene_symbol_to_id(goi)
