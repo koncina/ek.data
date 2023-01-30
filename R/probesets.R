@@ -1,68 +1,105 @@
+globalVariables(c(".feature", "gene_symbol", "rowid", "n", "probeset_penalty"))
 
 #' Identify probeset exhibiting the highest expression variance
 #' and being the most specific (based on probeset IDs)
 #'
-#' @importFrom tibble tibble rowid_to_column
-#' @importFrom dplyr mutate select group_by summarise
 #' @importFrom stats var
 #'
 #' @param x An ExpressionSet or SummarizedExperiment object
-#' @param gene_id_var The gene identifier to group by and associated to
+#' @param feature_var The gene identifier to group by and associated to
 #' multiple probesets (row IDs)
+#' @param most_specific remove suboptimal affymetrix probesets (`at > a_at > s_at > x_at`). Defaults to `TRUE`.
+#' @param ... Arguments to be passed to methods
 #'
 #' @export
-select_probeset <- function (x, gene_id_var = gene_symbol, ...) {
-  UseMethod("select_probeset", x)
+filter_probeset <- function (x, feature_var, most_specific = TRUE, ...) {
+  UseMethod("filter_probeset", x)
 }
 
+#' @importFrom Biobase fData exprs
+#'
+#' @export
+filter_probeset.ExpressionSet <- function(x, feature_var,
+                                          most_specific = TRUE, ...) {
+  .filter_probeset(x, {{feature_var}},
+                   most_specific,
+                   row_data_f = fData,
+                   assay_f = exprs)
+}
 
 #' @importFrom SummarizedExperiment rowData assay
 #'
-#' @param assay SummarizedExperiment assay to be used
-#'
 #' @export
-select_probeset.SummarizedExperiment <- function(x, gene_id_var, assay) {
-  apply(assay(x, i = {{assay}}), 1, var) |>
-    enframe(".feature_id", "var") |>
-    inner_join(as_tibble(rowData(x),
-                         rownames = ".feature_id"),
-               by = ".feature_id") |>
-    .select_probeset({{gene_id_var}})
+filter_probeset.SummarizedExperiment <- function(x, feature_var,
+                                                 most_specific = TRUE, assay, ...) {
+  .filter_probeset(x, {{feature_var}},
+                   most_specific,
+                   row_data_f = rowData,
+                   assay_f = \(x) assay(x, i = {{assay}}))
 }
 
-
-#' @importFrom Biobase exprs fData
+#' @importFrom assertr verify
+#' @importFrom tibble as_tibble rowid_to_column enframe
+#' @importFrom dplyr select mutate add_count recode across filter if_else group_by ungroup
+#' @importFrom stringr str_length str_extract str_trim
+#' @importFrom tidyr separate_rows
 #'
-#' @export
-select_probeset.ExpressionSet <- function(x, gene_id_var) {
-  apply(exprs(x), 1, var) |>
-    enframe(".feature_id", "var") |>
-    inner_join(as_tibble(fData(x),
-                         rownames = ".feature_id"),
-               by = ".feature_id") |>
-    .select_probeset({{gene_id_var}})
-}
+.filter_probeset <- function(x, id, most_specific = TRUE, row_data_f, assay_f) {
+
+  n_features_step1 <- nrow(x)
+
+  row_data <- row_data_f(x) |>
+    as_tibble(rownames = ".feature") |>
+    select(.feature, {{id}}) |>
+    rowid_to_column() |>
+    separate_rows({{id}}, sep =  " */+ *") |>
+    mutate(across(gene_symbol, str_trim)) |>
+    add_count(rowid) |>
+    verify(!(str_length(gene_symbol) == 0 & n > 1)) |>
+    mutate(gene_symbol = if_else(str_length(gene_symbol) == 0,
+                                 as.character(rowid), gene_symbol))
+
+  if (isTRUE(most_specific)) {
+    row_data <-  mutate(row_data,
+                        probeset_penalty = str_extract(.feature,
+                                                       "(_[asx])?_at$"),
+                        across(probeset_penalty, recode,
+                               `_at` = 0,
+                               `_a_at` = 1,
+                               `_s_at` = 2,
+                               `_x_at` = 3)) |>
+      group_by({{id}}) |>
+      filter(probeset_penalty == min(probeset_penalty) |
+               is.na(probeset_penalty)) |>
+      ungroup() |>
+      select(-probeset_penalty)
+  }
+
+  x <- x[row_data$.feature,]
+  n_features_step2 <- nrow(x)
+
+  if (n_features_step1 != n_features_step2)
+    message("Removed ", n_features_step1 - n_features_step2,
+            " suboptimal affymetrix probesets")
+
+  row_data <- assay_f(x) |>
+    apply(1, var) |>
+    enframe(".feature", "var") |>
+    inner_join(row_data, by = ".feature") |>
+    group_by({{id}}) |>
+    filter(var == min(var))
+
+  x <- x[row_data$.feature,]
+  n_features_step3 <- nrow(x)
+
+  if (n_features_step3 != n_features_step2)
+    message("Removing ", n_features_step2 - n_features_step3,
+            " feature(s): keeping features ensuring most variance")
 
 
-#' @importFrom dplyr group_by
-#'
-#' @export
-select_probeset.data.frame <- function(x, gene_id_var, probeset_id_var = feature_id, expression_var) {
-  rename(x, ".feature_id" = {{probeset_id_var}}) |>
-    group_by({{gene_id_var}}, .feature_id) |>
-    summarise(var = var({{expression}}), .groups = "drop") |>
-    .select_probeset({{gene_id_var}})
-}
+  if (n_features_step1 != n_features_step3)
+    message("Keeping ", n_features_step3, " out of ",
+            n_features_step1, " initial features")
 
-.select_probeset <- function(x, gene_id_var) {
-  group_by(x, {{gene_id_var}}) |>
-    mutate(
-      is_unspecific = str_detect(.feature_id, "[xs]_at$"),
-      only_unspecific = all(is_unspecific),
-      is_candidate = !xor(is_unspecific, only_unspecific),
-      selected_probeset = var == max(var[is_candidate])) |>
-    ungroup() |>
-    select(.feature_id, {{gene_id_var}}, is_unspecific:selected_probeset) |>
-    column_to_rownames(".feature_id")
-
+  x
 }

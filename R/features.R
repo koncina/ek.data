@@ -17,7 +17,7 @@ filter_features <- function (x,  e, ...) {
 #' @importFrom Biobase fData
 #'
 #' @export
-filter_features.ExpressionSet <- function(x, e) {
+filter_features.ExpressionSet <- function(x, e, ...) {
   filter(Biobase::fData(x), {{e}}) |>
     (\(f) x[rownames(f),])()
 }
@@ -25,7 +25,7 @@ filter_features.ExpressionSet <- function(x, e) {
 #' @importFrom SummarizedExperiment rowData
 #'
 #' @export
-filter_features.SummarizedExperiment <- function(x, e) {
+filter_features.SummarizedExperiment <- function(x, e, ...) {
   SummarizedExperiment::rowData(x) |>
     as_tibble(rownames = ".feature") |>
     filter({{e}}) |>

@@ -16,7 +16,7 @@ filter_samples <- function (x,  e, ...) {
 #' @importFrom Biobase pData
 #'
 #' @export
-filter_samples.ExpressionSet <- function(x, e) {
+filter_samples.ExpressionSet <- function(x, e, ...) {
   Biobase::pData(x) |>
     as_tibble(rownames = ".sample") |>
     filter({{e}}) |>
@@ -26,7 +26,7 @@ filter_samples.ExpressionSet <- function(x, e) {
 #' @importFrom SummarizedExperiment colData
 #'
 #' @export
-filter_samples.SummarizedExperiment <- function(x, e) {
+filter_samples.SummarizedExperiment <- function(x, e, ...) {
   SummarizedExperiment::colData(x) |>
     as_tibble(rownames = ".sample") |>
     filter({{e}}) |>

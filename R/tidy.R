@@ -1,3 +1,5 @@
+globalVariables(c(".feature", ".sample"))
+
 #' @importFrom generics tidy
 #' @export
 generics::tidy
@@ -34,8 +36,10 @@ tidy.ExpressionSet <- function(x, feature_vars = NULL, sample_vars = NULL, ...) 
 #' @importFrom dplyr select inner_join
 #' @importFrom purrr map reduce
 #'
+#' @param assay Assay to use as values. By default all assays are returned as different columns.
+#'
 #' @export
-tidy.SummarizedExperiment <- function(x, feature_vars = NULL, sample_vars = NULL, i = NULL, ...) {
+tidy.SummarizedExperiment <- function(x, feature_vars = NULL, sample_vars = NULL, assay = NULL, ...) {
 
   row_data <- rowData(x) |>
     as_tibble(rownames = ".feature") |>
@@ -45,7 +49,7 @@ tidy.SummarizedExperiment <- function(x, feature_vars = NULL, sample_vars = NULL
     as_tibble(rownames = ".sample") |>
     select(c(.sample, {{sample_vars}}))
 
-  i %n% assayNames(x) %n% 1 |>
+  {{assay}} %n% assayNames(x) %n% 1 |>
     map(\(i)
         assay(x, i) |>
           as_tibble(rownames = ".feature") |>
