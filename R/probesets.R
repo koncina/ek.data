@@ -1,4 +1,4 @@
-globalVariables(c(".feature", "gene_symbol", "rowid", "n", "probeset_penalty"))
+globalVariables(c(".feature", "rowid", "n", "probeset_penalty"))
 
 #' Identify probeset exhibiting the highest expression variance
 #' and being the most specific (based on probeset IDs)
@@ -53,11 +53,11 @@ filter_probeset.SummarizedExperiment <- function(x, feature_var,
     select(.feature, {{id}}) |>
     rowid_to_column() |>
     separate_rows({{id}}, sep =  " */+ *") |>
-    mutate(across(gene_symbol, str_trim)) |>
+    mutate(across({{id}}, str_trim)) |>
     add_count(rowid) |>
-    verify(!(str_length(gene_symbol) == 0 & n > 1)) |>
-    mutate(gene_symbol = if_else(str_length(gene_symbol) == 0,
-                                 as.character(rowid), gene_symbol))
+    verify(!(str_length({{id}}) == 0 & n > 1)) |>
+    mutate({{id}} := if_else(str_length({{id}}) == 0,
+                                 as.character(rowid), {{id}}))
 
   if (isTRUE(most_specific)) {
     row_data <-  mutate(row_data,
