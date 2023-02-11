@@ -43,6 +43,7 @@ filter_probeset.SummarizedExperiment <- function(x, feature_var,
 #' @importFrom dplyr select mutate add_count recode across filter if_else group_by ungroup
 #' @importFrom stringr str_length str_extract str_trim
 #' @importFrom tidyr separate_rows
+#' @importFrom rlang :=
 #'
 .filter_probeset <- function(x, id, most_specific = TRUE, row_data_f, assay_f) {
 

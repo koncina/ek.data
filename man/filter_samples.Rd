@@ -5,14 +5,12 @@
 \title{Filter out samples of interest
 based on col data variables (or .sample as the column identifier)}
 \usage{
-filter_samples(x, e, ...)
+filter_samples(x, ...)
 }
 \arguments{
 \item{x}{A SummarizedExperiment or ExpressionSet object.}
 
-\item{e}{An expression to filter features based on available variables}
-
-\item{...}{Arguments to be passed to methods}
+\item{...}{Arguments passed to filter}
 }
 \description{
 Filter out samples of interest

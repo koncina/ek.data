@@ -52,6 +52,8 @@ tidy.SummarizedExperiment <- function(x, feature_vars = NULL, sample_vars = NULL
   {{assay}} %n% assayNames(x) %n% 1 |>
     map(\(i)
         assay(x, i) |>
+          # Doesn't harm and needs to be done for HDF5
+          as.matrix() |>
           as_tibble(rownames = ".feature") |>
           pivot_longer(names_to = ".sample",
                        values_to = i,

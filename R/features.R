@@ -6,29 +6,28 @@
 #' @import tidyselect
 #'
 #' @param x A SummarizedExperiment or ExpressionSet object.
-#' @param e An expression to filter features based on available variables
-#' @param ... Arguments to be passed to methods
+#' @param ... Arguments passed to filter
 #'
 #' @export
-filter_features <- function (x,  e, ...) {
+filter_features <- function (x, ...) {
   UseMethod("filter_features", x)
 }
 
 #' @importFrom Biobase fData
 #'
 #' @export
-filter_features.ExpressionSet <- function(x, e, ...) {
-  filter(Biobase::fData(x), {{e}}) |>
+filter_features.ExpressionSet <- function(x, ...) {
+  filter(Biobase::fData(x), ...) |>
     (\(f) x[rownames(f),])()
 }
 
 #' @importFrom SummarizedExperiment rowData
 #'
 #' @export
-filter_features.SummarizedExperiment <- function(x, e, ...) {
+filter_features.SummarizedExperiment <- function(x, ...) {
   SummarizedExperiment::rowData(x) |>
     as_tibble(rownames = ".feature") |>
-    filter({{e}}) |>
+    filter(...) |>
     (\(f) x[f$.feature,])()
 }
 
@@ -58,3 +57,37 @@ aka <- function(x, y, sep = " */+ *") {
 `%aka%` <- function(x, y) {
   aka(x, y, sep =  " */+ *")
 }
+
+
+#' Extract available features as a tibble
+#' A wrapper around rowData() for SummarizedExperiment
+#' and fData() for ExpressionSet objects
+#' returning a tibble
+#'
+#' @param x A SummarizedExperiment or ExpressionSet object.
+#' @param ... Arguments to be passed to methods
+#'
+#' @export
+feature_data <- function (x, ...) {
+  UseMethod("feature_data", x)
+}
+
+
+#' @importFrom Biobase fData
+#' @importFrom tibble as_tibble
+#'
+#' @export
+feature_data.ExpressionSet <- function(x, ...) {
+  fData(x) |>
+    as_tibble(rownames = ".feature")
+}
+
+#' @importFrom SummarizedExperiment rowData
+#' @importFrom tibble as_tibble
+#'
+#' @export
+feature_data.SummarizedExperiment <- function(x, ...) {
+  SummarizedExperiment::rowData(x) |>
+    as_tibble(rownames = ".feature")
+}
+

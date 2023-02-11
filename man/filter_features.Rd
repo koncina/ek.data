@@ -6,14 +6,12 @@
 SummarizedExperiment or ExpressionSet objects
 matching feature criteria}
 \usage{
-filter_features(x, e, ...)
+filter_features(x, ...)
 }
 \arguments{
 \item{x}{A SummarizedExperiment or ExpressionSet object.}
 
-\item{e}{An expression to filter features based on available variables}
-
-\item{...}{Arguments to be passed to methods}
+\item{...}{Arguments passed to filter}
 }
 \description{
 Filters out expression data from
