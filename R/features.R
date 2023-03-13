@@ -79,7 +79,7 @@ feature_data <- function (x, ...) {
 #' @export
 feature_data.ExpressionSet <- function(x, ...) {
   fData(x) |>
-    as_tibble(rownames = ".feature")
+    as_tibble(rownames = ".feature", ...)
 }
 
 #' @importFrom SummarizedExperiment rowData
@@ -88,6 +88,6 @@ feature_data.ExpressionSet <- function(x, ...) {
 #' @export
 feature_data.SummarizedExperiment <- function(x, ...) {
   SummarizedExperiment::rowData(x) |>
-    as_tibble(rownames = ".feature")
+    as_tibble(rownames = ".feature", ...)
 }
 

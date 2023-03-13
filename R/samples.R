@@ -52,7 +52,7 @@ sample_data <- function (x, ...) {
 #' @export
 sample_data.ExpressionSet <- function(x, ...) {
   pData(x) |>
-    as_tibble(rownames = ".sample")
+    as_tibble(rownames = ".sample", ...)
 }
 
 #' @importFrom SummarizedExperiment colData
@@ -61,5 +61,5 @@ sample_data.ExpressionSet <- function(x, ...) {
 #' @export
 sample_data.SummarizedExperiment <- function(x, ...) {
   SummarizedExperiment::colData(x) |>
-    as_tibble(rownames = ".sample")
+    as_tibble(rownames = ".sample", ...)
 }
