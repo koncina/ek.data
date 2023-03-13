@@ -64,3 +64,23 @@ tidy.SummarizedExperiment <- function(x, feature_vars = NULL, sample_vars = NULL
     inner_join(row_data, by = ".feature") |>
     inner_join(col_data, by = ".sample")
 }
+
+# Experimental:
+# Adding / changing methods to handle DESeqDataSet classes
+# and provide direct access to normalized counts using the methods
+# implemented here
+
+#' @export
+setMethod("assayNames", signature(x = "DESeqDataSet"), function(x) {
+  c(callNextMethod(), "mrn")
+})
+
+#' @importFrom methods callNextMethod
+#' @importFrom BiocGenerics counts
+#' @export
+setMethod("assay", signature(x = "DESeqDataSet", i = "character"), function(x, i, ...) {
+  if (i == "mrn") return(counts(x, normalize = TRUE))
+  else callNextMethod()
+})
+
+

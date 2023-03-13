@@ -1,7 +1,7 @@
 Package: ek.data
 Type: Package
 Title: Extract expression for genes of interest
-Version: 0.0.2.9000
+Version: 0.0.3.9000
 Authors@R: person("Eric", "Koncina", email = "mail@koncina.eu", role = c("aut", "cre"))
 Description: Extract expression for genes of interest
     out of Expressionset and SummarizedExperiment objects.
@@ -10,8 +10,10 @@ Encoding: UTF-8
 LazyData: true
 Imports: assertr,
   Biobase,
+  BiocGenerics,
   dplyr,
   generics,
+  methods,
   purrr,
   rlang,
   stringr,
