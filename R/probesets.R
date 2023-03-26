@@ -88,7 +88,7 @@ filter_probeset.SummarizedExperiment <- function(x, feature_var,
     enframe(".feature", "var") |>
     inner_join(row_data, by = ".feature") |>
     group_by({{id}}) |>
-    filter(var == min(var))
+    filter(var == max(var))
 
   x <- x[row_data$.feature,]
   n_features_step3 <- nrow(x)
