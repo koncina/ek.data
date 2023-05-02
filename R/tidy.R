@@ -56,11 +56,14 @@ tidy.SummarizedExperiment <- function(x, feature_vars = NULL, sample_vars = NULL
           as.matrix() |>
           as_tibble(rownames = ".feature") |>
           pivot_longer(names_to = ".sample",
-                       values_to = i,
+                       values_to = as.character(i),
+                       # This is certainly still not the correct way to handle this...
+                       names_repair = \(x) str_replace(x, "^(\\d+)$", "expression_\\1"),
                        -`.feature`)
 
     ) |>
-    reduce(inner_join, by = c(".feature", ".sample")) |>
+    reduce(\(x, y) inner_join(x, y, by = c(".feature", ".sample"))) |>
+    rename_with(\(x) if (length(x) == 1) "expression" else x, starts_with("expression")) |>
     inner_join(row_data, by = ".feature") |>
     inner_join(col_data, by = ".sample")
 }
