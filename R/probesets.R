@@ -67,10 +67,10 @@ filter_probeset.SummarizedExperiment <- function(x, feature_var,
                                      "(_[asx])?_at$"),
       probeset_penalty = recode_values(
         probeset_penalty,
-        `_at`   ~ 0,
-        `_a_at` ~ 1,
-        `_s_at` ~ 2,
-        `_x_at` ~ 3
+        "_at"   ~ 0,
+        "_a_at" ~ 1,
+        "_s_at" ~ 2,
+        "_x_at" ~ 3
       )
     ) |>
       group_by({{id}}) |>
