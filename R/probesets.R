@@ -61,14 +61,18 @@ filter_probeset.SummarizedExperiment <- function(x, feature_var,
                                  as.character(rowid), {{id}}))
 
   if (isTRUE(most_specific)) {
-    row_data <-  mutate(row_data,
-                        probeset_penalty = str_extract(.feature,
-                                                       "(_[asx])?_at$"),
-                        across(probeset_penalty, recode,
-                               `_at` = 0,
-                               `_a_at` = 1,
-                               `_s_at` = 2,
-                               `_x_at` = 3)) |>
+    row_data <- mutate(
+      row_data,
+      probeset_penalty = str_extract(.feature,
+                                     "(_[asx])?_at$"),
+      probeset_penalty = recode_values(
+        probeset_penalty,
+        `_at`   ~ 0,
+        `_a_at` ~ 1,
+        `_s_at` ~ 2,
+        `_x_at` ~ 3
+      )
+    ) |>
       group_by({{id}}) |>
       filter(probeset_penalty == min(probeset_penalty) |
                is.na(probeset_penalty)) |>
